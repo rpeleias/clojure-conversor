@@ -1,6 +1,7 @@
 (ns conversor.core
   (:require [clojure.tools.cli :refer [parse-opts]]
-            [clj-http.client :as http-client])
+             [cheshire.core :refer [parse-string]]
+             [clj-http.client :as http-client])
   (:gen-class))
 
 (def opcoes-do-programa
@@ -14,10 +15,21 @@
 (defn parametrizar-moedas [de para]
   (str de "_" para))
 
+(defn obter-cotacao [de para]
+  (let [moedas (parametrizar-moedas de para)]
+    (-> (:body (http-client/get api-url
+                                {:query-params { "q" moedas
+                                                "apikey" chave}}))
+        (parse-string)
+        (get-in ["rates" para]))))
+
+(defn- formatar [cotacao de para]
+  (str "1 " de " equivale a " cotacao " em " para))
+
 (defn -main                                                 ; static function
   [& args]
   (let [{:keys [de para]} (:options
                             (parse-opts args opcoes-do-programa))]
-        (prn "Cotação:" (http-client/get api-url
-                                        {:query-params {"q"      (parametrizar-moedas de para)
-                                                        "apikey" chave}}))))
+    (-> (obter-cotacao de para)
+        (formatar de para)
+        (prn))))
