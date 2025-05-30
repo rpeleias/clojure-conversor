@@ -1,14 +1,12 @@
 (ns conversor.core
+  (:require [clojure.tools.cli :refer [parse-opts]])
   (:gen-class))
 
-(defn- valores-em [argumento]
-  (cond
-    (.startsWith argumento "--de=")
-    {:de (.substring argumento 5)}
-    (.startsWith argumento "--para=")
-    {:para (.substring argumento 7)}
-    :else {}))
+(def opcoes-do-programa
+  [["-d" "--de moeda base" "moeda base para conversão" :default "eur"]
+   ["-p" "--para moeda destino" "moeda a ual queremos saber o valor"]])
 
 (defn -main                                                 ; static function
   [& args]
-  (println "Os argumentos são: " (map valores-em args)))
+  (prn "as opções são:" (:options
+                          (parse-opts args opcoes-do-programa))))
